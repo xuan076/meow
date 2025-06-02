@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>*咖波配對樂*</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Microsoft JhengHei", sans-serif;
+      background: linear-gradient(to right, #b3e0ff, #e0f7ff);
+      color: #003366;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 10px;
+      overflow-x: hidden;
+      padding-bottom: 0;
+    }
+
+    h1 {
+      margin: 0 0 20px;
+      font-weight: 700;
+      font-size: 2.8rem;
+      text-shadow: 2px 2px 3px #005599;
+      color: #003366;
+      animation: bounceIn 1.4s ease, glowText 3s infinite alternate;
+    }
+
+    @keyframes bounceIn {
+      0% { transform: scale(0.3); opacity: 0; }
+      50% { transform: scale(1.05); opacity: 1; }
+      70% { transform: scale(0.9); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes glowText {
+      from { text-shadow: 0 0 5px #66ccff, 0 0 10px #3399ff; }
+      to { text-shadow: 0 0 10px #99e6ff, 0 0 20px #66ccff; }
+    }
+
+    #container {
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+      gap: 30px;
+      width: 100%;
+      max-width: 1200px;
+      animation: fadeSlideUp 1.2s ease;
+    }
+
+    @keyframes fadeSlideUp {
+      0% { transform: translateY(50px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+
+    .side-panel {
+      width: 150px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 80, 0.1);
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .side-panel img {
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 74, 153, 0.3);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .side-panel img:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 10px #66ccff;
+    }
+
+    .main-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+    }
+
+    #game-board {
+      width: 640px;
+      display: grid;
+      grid-template-columns: repeat(4, 150px);
+      grid-template-rows: repeat(4, 150px);
+      gap: 15px;
+      padding: 20px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 8px 25px rgba(0, 0, 80, 0.12);
+    }
+
+    .card {
+      width: 150px;
+      height: 150px;
+      perspective: 1000px;
+      cursor: pointer;
+      border-radius: 15px;
+      position: relative;
+      transition: transform 0.3s ease;
+    }
+
+    .card:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 15px #88ccff;
+    }
+
+    .card.flip .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+      border-radius: 15px;
+    }
+
+    .card-front, .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 15px;
+      backface-visibility: hidden;
+    }
+
+    .card-back {
+      background-color: #e6f7ff;
+      transform: rotateY(180deg);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      animation: glowBack 3s infinite ease-in-out alternate;
+    }
+
+    .card-back img {
+      width: 110px;
+      height: 110px;
+      object-fit: contain;
+      border-radius: 12px;
+    }
+
+    @keyframes glowBack {
+      from { box-shadow: 0 0 6px #99ddff; }
+      to   { box-shadow: 0 0 15px #33bbff; }
+    }
+
+    .card-front {
+      background: linear-gradient(to bottom, #004a99, #0066cc);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 3rem;
+      color: white;
+      font-weight: 700;
+    }
+
+    .matched {
+      pointer-events: none;
+      animation: sparkleOut 1s forwards;
+    }
+
+    @keyframes sparkleOut {
+      0% { opacity: 1; transform: scale(1); box-shadow: 0 0 0px transparent; }
+      50% { transform: scale(1.2); box-shadow: 0 0 20px #99eeff; }
+      100% { opacity: 0; transform: scale(0.7); }
+    }
+
+    #reset-button {
+      margin: 20px auto 40px;
+      padding: 12px 28px;
+      font-size: 1.2rem;
+      background: linear-gradient(135deg, #0059b3, #3399ff);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 74, 153, 0.7);
+      transition: all 0.3s ease;
+    }
+
+    #reset-button:hover {
+      background: linear-gradient(135deg, #0077cc, #66ccff);
+      box-shadow: 0 0 15px #66ccff;
+    }
+
+    #message {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #004a99;
+      margin-bottom: 1rem;
+      min-height: 1.6em;
+      text-align: center;
+    }
+
+    /* 左右圖片排版結構保持 */
+    .dual-panel {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
+    }
+
+    .dual-panel .top-group,
+    .dual-panel .bottom-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    #left-panel .top-group,
+    #right-panel .bottom-group {
+      flex-grow: 1;
+    }
+    #site-footer {
+    position: relative;
+    width: 100vw;
+    background: white;
+    padding: 15px 0;
+    margin: 0;
+    text-align: center;
+    font-size: 0.95rem;
+    color: #333;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+  </style>
+</head>
+<body>
+  <h1>*咖波配對樂*</h1>
+  <div id="container">
+    <div class="side-panel dual-panel" id="left-panel">
+      <div class="top-group">
+        <img src="capoo1.jpg" />
+        <img src="capoo2.jpg" />
+        <img src="capoo3.png" />
+        <img src="capoo4.jpg" />
+      </div>
+    </div>
+
+    <div class="main-panel">
+      <div id="message"></div>
+      <div id="game-board"></div>
+      <button id="reset-button">重新開始</button>
+    </div>
+
+    <div class="side-panel dual-panel" id="right-panel">
+      <div class="bottom-group">
+        <img src="capoo5.png" />
+        <img src="capoo6.jpg" />
+        <img src="capoo7.png" />
+        <img src="capoo8.png" />
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const cardsData = [
+      { id: 1, img: 'capoo1.jpg' },
+      { id: 2, img: 'capoo2.jpg' },
+      { id: 3, img: 'capoo3.png' },
+      { id: 4, img: 'capoo4.jpg' },
+      { id: 5, img: 'capoo5.png' },
+      { id: 6, img: 'capoo6.jpg' },
+      { id: 7, img: 'capoo7.png' },
+      { id: 8, img: 'capoo8.png' }
+    ];
+
+    let cards = [];
+    let flippedCards = [];
+    let matchedCount = 0;
+    const gameBoard = document.getElementById('game-board');
+    const message = document.getElementById('message');
+    const resetBtn = document.getElementById('reset-button');
+
+    function shuffle(array) {
+      let currentIndex = array.length, randomIndex;
+
+      while (currentIndex !== 0) {
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+        [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+      }
+
+      return array;
+    }
+
+    function initGame() {
+      matchedCount = 0;
+      message.textContent = '';
+      cards = [];
+
+      const doubleCards = [...cardsData, ...cardsData];
+      shuffle(doubleCards);
+
+      gameBoard.innerHTML = '';
+
+      doubleCards.forEach((cardData, index) => {
+        const card = document.createElement('div');
+        card.classList.add('card');
+        card.dataset.id = cardData.id;
+
+        card.innerHTML = `
+          <div class="card-inner">
+            <div class="card-front">?</div>
+            <div class="card-back"><img src="${cardData.img}" /></div>
+          </div>
+        `;
+
+        card.addEventListener('click', () => flipCard(card));
+
+        gameBoard.appendChild(card);
+        cards.push(card);
+      });
+    }
+
+    function flipCard(card) {
+      if (flippedCards.length === 2) return;
+      if (card.classList.contains('flip')) return;
+      if (card.classList.contains('matched')) return;
+
+      card.classList.add('flip');
+      flippedCards.push(card);
+
+      if (flippedCards.length === 2) {
+        checkMatch();
+      }
+    }
+
+    function checkMatch() {
+      const [card1, card2] = flippedCards;
+
+      if (card1.dataset.id === card2.dataset.id) {
+        matchedCount += 2;
+        card1.classList.add('matched');
+        card2.classList.add('matched');
+        flippedCards = [];
+
+        if (matchedCount === cards.length) {
+          message.textContent = "恭喜！你完成了所有配對！🎉";
+        }
+      } else {
+        setTimeout(() => {
+          card1.classList.remove('flip');
+          card2.classList.remove('flip');
+          flippedCards = [];
+        }, 1000);
+      }
+    }
+
+    resetBtn.addEventListener('click', initGame);
+    initGame();
+  </script>
+    ...
+  </script>
+  <footer id="site-footer">
+    <p>&copy; 2025 咖波配對樂. 版權所有，保留一切權利。</p>
+  </footer>
+
+</body>
+</html>
